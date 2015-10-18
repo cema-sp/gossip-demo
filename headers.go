@@ -9,49 +9,45 @@ func Via(e *endpoint, branch string) *base.ViaHeader {
 		&base.ViaHop{
 			ProtocolName:    "SIP",
 			ProtocolVersion: "2.0",
-			Transport:       e.transport,
+			Transport:       e.transport.String(),
 			Host:            e.host,
 			Port:            &e.port,
-			Params: base.Params{
-				"branch": &branch,
-			},
+			Params:          base.NewParams().Add("branch", base.String{branch}),
 		},
 	}
 }
 
-func To(e *endpoint, tag string) *base.ToHeader {
+func To(e *endpoint, tag base.String) *base.ToHeader {
 	header := &base.ToHeader{
 		DisplayName: &e.displayName,
 		Address: &base.SipUri{
 			User:      &e.username,
 			Host:      e.host,
-			UriParams: base.Params{},
+			UriParams: base.NewParams(),
 		},
-		Params: base.Params{},
+		Params: base.NewParams(),
 	}
 
-	if tag != "" {
-		header.Params["tag"] = &tag
+	if tag.String() != "" {
+		header.Params.Add("tag", &tag)
 	}
 
 	return header
 }
 
-func From(e *endpoint, tag string) *base.FromHeader {
+func From(e *endpoint, tag base.String) *base.FromHeader {
 	header := &base.FromHeader{
 		DisplayName: &e.displayName,
 		Address: &base.SipUri{
-			User: &e.username,
-			Host: e.host,
-			UriParams: base.Params{
-				"transport": &e.transport,
-			},
+			User:      &e.username,
+			Host:      e.host,
+			UriParams: base.NewParams().Add("transport", &e.transport),
 		},
-		Params: base.Params{},
+		Params: base.NewParams(),
 	}
 
-	if tag != "" {
-		header.Params["tag"] = &tag
+	if tag.String() != "" {
+		header.Params.Add("tag", &tag)
 	}
 
 	return header

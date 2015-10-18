@@ -2,22 +2,21 @@ package main
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/stefankopieczek/gossip/base"
 	"github.com/stefankopieczek/gossip/log"
 	"github.com/stefankopieczek/gossip/transaction"
+	"time"
 )
 
 type endpoint struct {
 	// Sip Params
-	displayName string
-	username    string
+	displayName base.String
+	username    base.String
 	host        string
 
 	// Transport Params
-	port      uint16 // Listens on this port.
-	transport string // Sends using this transport. ("tcp" or "udp")
+	port      uint16      // Listens on this port.
+	transport base.String // Sends using this transport. ("tcp" or "udp")
 
 	// Internal guts
 	tm       *transaction.Manager
@@ -27,9 +26,9 @@ type endpoint struct {
 
 type dialog struct {
 	callId    string
-	to_tag    string // The tag in the To header.
-	from_tag  string // The tag in the From header.
-	currentTx txInfo // The current transaction.
+	to_tag    base.String // The tag in the To header.
+	from_tag  base.String // The tag in the From header.
+	currentTx txInfo      // The current transaction.
 	cseq      uint32
 }
 
@@ -39,7 +38,7 @@ type txInfo struct {
 }
 
 func (e *endpoint) Start() error {
-	tm, err := transaction.NewManager(e.transport, fmt.Sprintf("%v:%v", e.host, e.port))
+	tm, err := transaction.NewManager(e.transport.String(), fmt.Sprintf("%v:%v", e.host, e.port))
 	if err != nil {
 		return err
 	}
@@ -56,10 +55,10 @@ func (e *endpoint) ClearDialog() {
 func (caller *endpoint) Invite(callee *endpoint) error {
 	// Starting a dialog.
 	callid := "thisisacall" + string(caller.dialogIx)
-	tag := "tag." + caller.username + "." + caller.host
+	tagString := fmt.Sprintf("tag.%s.%s", caller.username, caller.host)
 	branch := "z9hG4bK.callbranch.INVITE"
 	caller.dialog.callId = callid
-	caller.dialog.from_tag = tag
+	caller.dialog.from_tag = base.String{tagString}
 	caller.dialog.currentTx = txInfo{}
 	caller.dialog.currentTx.branch = branch
 
@@ -92,9 +91,9 @@ func (caller *endpoint) Invite(callee *endpoint) error {
 			log.Info("Received response: %v", r.Short())
 			log.Debug("Full form:\n%v\n", r.String())
 			// Get To tag if present.
-			tag, ok := r.Headers("To")[0].(*base.ToHeader).Params["tag"]
+			tag, ok := r.Headers("To")[0].(*base.ToHeader).Params.Get("tag")
 			if ok {
-				caller.dialog.to_tag = *tag
+				caller.dialog.to_tag = tag.(base.String)
 			}
 
 			switch {
