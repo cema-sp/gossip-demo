@@ -10,8 +10,8 @@ var (
 	// Caller parameters
 	caller = &endpoint{
 		displayName: base.String{"Semyon"},
-		username:    base.String{"2233553341@sip2sip.info"},
-		host:        "127.0.0.1",
+		username:    base.String{"test"},
+		host:        "0.0.0.0",
 		port:        5060,
 		transport:   base.String{"UDP"},
 	}
